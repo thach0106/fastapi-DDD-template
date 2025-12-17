@@ -10,29 +10,34 @@ from src.core.database import Base
 from src.modules.orders.domain.repositories.event_store import EventStore
 from src.modules.orders.domain.events.events import DomainEvent
 
-# 1. SQLAlchemy Model for Events
-class StoredEventModel(Base):
-    __tablename__ = "domain_events"
+# ... (Imports remain same)
+from typing import Type, Dict
 
-    event_id = Column(PG_UUID(as_uuid=True), primary_key=True)
-    stream_id = Column(PG_UUID(as_uuid=True), index=True, nullable=False)
-    event_type = Column(String, nullable=False)
-    payload = Column(JSONB, nullable=False)
-    occurred_on = Column(DateTime, default=datetime.utcnow, nullable=False)
-    version = Column(Integer, nullable=True) # Optimistic locking support
+# Event Registry
+class EventRegistry:
+    _registry: Dict[str, Type[DomainEvent]] = {}
 
-# 2. Postgres Implementation
+    @classmethod
+    def register(cls, event_cls: Type[DomainEvent]):
+        cls._registry[event_cls.__name__] = event_cls
+
+    @classmethod
+    def get(cls, name: str) -> Type[DomainEvent]:
+        if name not in cls._registry:
+            raise ValueError(f"Event type {name} not registered")
+        return cls._registry[name]
+
+# Register OrderCreated (Ideally done in module startup)
+from src.modules.orders.domain.events.events import OrderCreated
+EventRegistry.register(OrderCreated)
+
 class PostgresEventStore(EventStore):
     def __init__(self, session: AsyncSession):
         self.session = session
 
     async def append(self, stream_id: UUID, events: List[DomainEvent]) -> None:
         for event in events:
-            # Basic serialization - In prod use a proper serializer (like marshmallow or pydantic)
-            # Here we assume events are dataclasses or Pydantic models
             payload = event.__dict__ if hasattr(event, "__dict__") else event.model_dump()
-            
-            # Handle UUIDs and Dates in payload for JSON
             cleaned_payload = self._clean_payload(payload)
 
             stored_event = StoredEventModel(
@@ -47,14 +52,35 @@ class PostgresEventStore(EventStore):
         await self.session.flush()
 
     async def load(self, stream_id: UUID) -> List[DomainEvent]:
-        # Loading requires mapping back to Domain Class. 
-        # This implementation requires a registry of event types.
-        # For this template, we will return raw dicts or handle mapping later.
-        # Ideally: EventMapper.to_domain(model)
-        raise NotImplementedError("Load requires Event Registry mapping")
+        stmt = select(StoredEventModel).where(StoredEventModel.stream_id == stream_id).order_by(StoredEventModel.occurred_on)
+        result = await self.session.execute(stmt)
+        stored_events = result.scalars().all()
+        
+        domain_events = []
+        for se in stored_events:
+            event_cls = EventRegistry.get(se.event_type)
+            # Reconstruct event (Assuming dataclass or pydantic that accepts kwargs)
+            # We need to handle UUID/Date deserialization if using Pydantic it might happen auto, 
+            # for Dataclasses we might need helper.
+            # For this template: simple unpacking + naive fix
+            payload = se.payload
+            
+            # Fix payload types (UUIDs stored as strings in JSON)
+            # This logic depends on the event definition. 
+            # Ideally use Pydantic for Events to handle this clean.
+            # Hack for template:
+            if "event_id" in payload: payload["event_id"] = UUID(str(payload["event_id"]))
+            if "order_id" in payload: payload["order_id"] = UUID(str(payload["order_id"]))
+            if "customer_id" in payload: payload["customer_id"] = UUID(str(payload["customer_id"]))
+            # occurred_on is in payload? usually yes.
+            if "occurred_on" in payload: payload["occurred_on"] = datetime.fromisoformat(payload["occurred_on"])
+            
+            event = event_cls(**payload)
+            domain_events.append(event)
+            
+        return domain_events
 
     def _clean_payload(self, payload: dict) -> dict:
-        # Helper to make dict JSON serializable
         new_payload = {}
         for k, v in payload.items():
             if isinstance(v, UUID):

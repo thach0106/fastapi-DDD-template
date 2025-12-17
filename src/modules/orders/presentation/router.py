@@ -15,6 +15,9 @@ from src.core.bus_config import command_bus, query_bus, configure_orders_module
 from src.core.event_store import PostgresEventStore
 from src.modules.orders.infrastructure.persistence.repositories import SqlAlchemyOrderRepository
 
+router = APIRouter()
+
+
 # Dependency for wiring (could be moved to middleware/startup if stateless)
 async def get_wired_context(db: AsyncSession = Depends(get_db)):
     # Create dependencies

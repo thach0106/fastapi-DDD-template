@@ -16,11 +16,17 @@ async def test_login_flow(client: AsyncClient, db):
     from src.modules.users.infrastructure.persistence.repositories import SqlAlchemyUserRepository
     from src.core.security import get_password_hash
     
+    from src.modules.users.domain.value_objects import Email, PasswordHash
+    
     repo = SqlAlchemyUserRepository(db)
     email = "test@example.com"
     password = "password123"
     
-    user = User.create(email=email, password_hash=get_password_hash(password))
+    # We use User.create which expects VOs
+    user = User.create(
+        email=Email(email), 
+        password_hash=PasswordHash(get_password_hash(password))
+    )
     await repo.save(user)
     
     # 2. Execute - Logical Login

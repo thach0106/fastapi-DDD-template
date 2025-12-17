@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # DATABASE
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "password"
+    POSTGRES_PASSWORD: str = "postgres" # Changed default to 'postgres'
     POSTGRES_DB: str = "app"
     POSTGRES_PORT: int = 5432
     @property

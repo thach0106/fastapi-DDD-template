@@ -1,6 +1,7 @@
 from src.modules.auth.application.commands.login import LoginCommand
 from src.modules.users.domain.repositories.user_repository import UserRepository
-from src.core.security import verify_password, create_access_token, create_refresh_token
+from src.core.security import PasswordService
+from src.modules.auth.application.services.jwt_service import JWTService
 from typing import Dict
 
 class LoginHandler:
@@ -9,11 +10,14 @@ class LoginHandler:
 
     async def handle(self, command: LoginCommand) -> Dict[str, str]:
         user = await self.user_repository.get_by_email(command.email)
-        if not user or not verify_password(command.password, user.password_hash):
-            raise ValueError("Invalid credentials") # In real app, use specific Exception
+        if not user or not PasswordService.verify_password(command.password, str(user.password_hash)):
+            raise ValueError("Invalid credentials")
 
-        access_token = create_access_token(subject=user.id)
-        refresh_token = create_refresh_token(subject=user.id)
+        # user.id might be UserId(UUID) wrapper
+        user_id = str(user.id)
+        
+        access_token = JWTService.create_access_token(subject=user_id, claims={"role": user.role})
+        refresh_token = JWTService.create_refresh_token(subject=user_id)
         
         return {
             "access_token": access_token,

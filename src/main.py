@@ -5,17 +5,20 @@ from src.core.database import engine, Base
 from src.modules.orders.presentation.router import router as orders_router
 from src.modules.auth.presentation.router import router as auth_router
 from src.core.logging import setup_logging
+from src.infrastructure.cache import redis_cache
 
 # Setup Logging
 setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Create tables (simplest way used here, use Alembic in prod)
+    # Startup
+    await redis_cache.initialize()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown
+    await redis_cache.close()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

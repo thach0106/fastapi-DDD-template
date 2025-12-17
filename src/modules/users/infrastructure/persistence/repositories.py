@@ -26,15 +26,15 @@ class SqlAlchemyUserRepository(BaseRepository[UserModel], UserRepository):
         # Check update vs insert logic
         existing = await super().get_by_id(user.id)
         if existing:
-            existing.email = user.email
-            existing.password_hash = user.password_hash
+            existing.email = str(user.email)
+            existing.password_hash = str(user.password_hash)
             existing.is_active = user.is_active
             existing.role = user.role
         else:
             new_model = UserModel(
                 id=user.id,
-                email=user.email,
-                password_hash=user.password_hash,
+                email=str(user.email),
+                password_hash=str(user.password_hash),
                 is_active=user.is_active,
                 role=user.role
             )
@@ -43,9 +43,9 @@ class SqlAlchemyUserRepository(BaseRepository[UserModel], UserRepository):
 
     def _to_domain(self, model: UserModel) -> User:
         return User(
-            id=model.id,
-            email=model.email,
-            password_hash=model.password_hash,
+            id=UserId(model.id),
+            email=Email(model.email),
+            password_hash=PasswordHash(model.password_hash),
             is_active=model.is_active,
             role=model.role
         )
