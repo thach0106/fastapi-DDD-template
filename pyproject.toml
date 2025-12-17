@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "fastapi-ddd-template"
+version = "0.1.0"
+description = "FastAPI Domain-Driven Design Template with CQRS and Event Sourcing"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.25"}
+asyncpg = "^0.29.0"
+pydantic = "^2.6.0"
+pydantic-settings = "^2.1.0"
+redis = "^5.0.1"
+celery = "^5.3.6"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+alembic = "^1.13.1"
+python-multipart = "^0.0.9"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.5"
+httpx = "^0.26.0"
+mypy = "^1.8.0"
+black = "^24.1.1"
+pylint = "^3.0.3"
+faker = "^22.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["src/tests"]
+pythonpath = ["."]

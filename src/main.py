@@ -1,0 +1,25 @@
+from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from src.core.config import settings
+from src.core.database import engine, Base
+from src.modules.orders.presentation.router import router as orders_router
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create tables (simplest way used here, use Alembic in prod)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    # Shutdown
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan
+)
+
+app.include_router(orders_router, prefix=f"{settings.API_V1_STR}/orders", tags=["orders"])
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
