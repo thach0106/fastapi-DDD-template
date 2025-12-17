@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 from uuid import UUID
-from src.modules.auth.domain.aggregates.user import User
+from src.modules.users.domain.aggregates.user import User
 
 class UserRepository(ABC):
     @abstractmethod

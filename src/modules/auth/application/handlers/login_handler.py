@@ -1,5 +1,5 @@
 from src.modules.auth.application.commands.login import LoginCommand
-from src.modules.auth.domain.repositories.user_repository import UserRepository
+from src.modules.users.domain.repositories.user_repository import UserRepository
 from src.core.security import verify_password, create_access_token, create_refresh_token
 from typing import Dict
 

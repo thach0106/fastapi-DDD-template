@@ -4,9 +4,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.repository import BaseRepository
-from src.modules.auth.domain.aggregates.user import User
-from src.modules.auth.domain.repositories.user_repository import UserRepository
-from src.modules.auth.infrastructure.persistence.models import UserModel
+from src.modules.users.domain.aggregates.user import User
+from src.modules.users.domain.repositories.user_repository import UserRepository
+from src.modules.users.infrastructure.persistence.models import UserModel
 
 class SqlAlchemyUserRepository(BaseRepository[UserModel], UserRepository):
     def __init__(self, session: AsyncSession):

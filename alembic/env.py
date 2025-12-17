@@ -10,7 +10,7 @@ from alembic import context
 from src.core.config import settings
 from src.core.database import Base
 from src.modules.orders.infrastructure.persistence.models import OrderModel
-from src.modules.auth.infrastructure.persistence.models import UserModel
+from src.modules.users.infrastructure.persistence.models import UserModel
 from src.core.event_store import StoredEventModel
 
 config = context.config

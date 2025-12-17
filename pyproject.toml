@@ -29,6 +29,7 @@ mypy = "^1.8.0"
 black = "^24.1.1"
 pylint = "^3.0.3"
 faker = "^22.2.0"
+ruff = "^0.1.14"
 
 [build-system]
 requires = ["poetry-core"]
@@ -40,6 +41,29 @@ warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["src/tests"]
+pythonpath = ["."]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+select = ["E", "F", "B", "I", "N", "UP", "PL", "RUF"]
+ignore = ["B008"] # Do not perform function call `Depends` in argument defaults
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

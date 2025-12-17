@@ -56,5 +56,14 @@ poetry run pytest
 
 - `src/core/bus.py`: Command/Query Bus implementation.
 - `src/core/repository.py`: Base Repository with RLAC.
-- `src/modules/auth`: New Auth module.
-- `src/modules/orders`: Refactored Orders module using Bus.
+- `src/modules/auth`: Authentication logic (Tokens, Login).
+- `src/modules/users`: User Identity & Profile Management (User Aggregate, Repositories).
+- `src/modules/orders`: Orders module using Bus/CQRS.
+
+## Developer Tools
+
+- `make install`: Install dependencies.
+- `make dev`: Start dev server.
+- `make test`: Run tests.
+- `make migrate`: Run alembic migrations.
+- `make lint`: Run linters.

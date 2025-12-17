@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.deps import get_db
-from src.modules.auth.infrastructure.persistence.repositories import SqlAlchemyUserRepository
+from src.modules.users.infrastructure.persistence.repositories import SqlAlchemyUserRepository
 from src.modules.auth.application.commands.login import LoginCommand
 from src.modules.auth.application.handlers.login_handler import LoginHandler
 

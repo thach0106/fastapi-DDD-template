@@ -4,6 +4,10 @@ from src.core.config import settings
 from src.core.database import engine, Base
 from src.modules.orders.presentation.router import router as orders_router
 from src.modules.auth.presentation.router import router as auth_router
+from src.core.logging import setup_logging
+
+# Setup Logging
+setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
