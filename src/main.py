@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from src.core.config import settings
 from src.core.database import engine, Base
 from src.modules.orders.presentation.router import router as orders_router
+from src.modules.auth.presentation.router import router as auth_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,6 +19,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(auth_router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(orders_router, prefix=f"{settings.API_V1_STR}/orders", tags=["orders"])
 
 @app.get("/health")

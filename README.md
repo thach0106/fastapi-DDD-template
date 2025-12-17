@@ -2,68 +2,59 @@
 
 This project is a production-ready backend template using FastAPI, Domain-Driven Design (DDD), CQRS, and Event Sourcing.
 
-## Tech Stack
+## Refactor & Enhancements (v2)
 
-- **Framework**: FastAPI (Async)
-- **Database**: PostgreSQL (Async SQLAlchemy 2.0)
-- **Migrations**: Alembic
-- **Caching**: Redis
-- **Tasks**: Celery
-- **Auth**: JWT + RLAC
-- **Dependency Management**: Poetry
+1. **Clean Architecture Enforcement**:
 
-## Project Structure
+   - Routers now decoupled from Application Handlers via `CommandBus` and `QueryBus`.
+   - Domain layer strictly isolated.
 
-- `src/core`: Configuration, Database, Security.
-- `src/modules`: Domain modules (e.g., `orders`).
-  - `domain`: Pure business logic (Aggregates, Events).
-  - `application`: Use cases (Commands, Queries, Handlers).
-  - `infrastructure`: Database implementation, External adapters.
-  - `presentation`: API Routers, Schemas.
+2. **Event Sourcing (Postgres)**:
 
-## Architecture Patterns
+   - Events persisted to `domain_events` table (PostgreSQL JSONB).
+   - Alembic migrations included.
 
-### Domain-Driven Design (DDD)
+3. **Core Abstractions**:
 
-The core logic resides in `domain/`. It does not depend on frameworks.
-Aggregates like `Order` control consistency.
+   - `CommandBus` / `QueryBus`: With middleware support (Logging).
+   - `BaseRepository`: Shared logic for RLAC (`owner_id`) and Multi-tenancy (`tenant_id`).
 
-### CQRS (Command Query Responsibility Segregation)
+4. **Authentication Module**:
 
-- **Commands**: Modify state (`CreateOrderCommand`). Handled by `CreateOrderHandler`.
-- **Queries**: Read state (`GetOrderQuery`). Handled by `GetOrderHandler`.
+   - Full JWT implementation (Login, Refresh).
+   - `User` Aggregate and Repository.
+   - Role-Based Access Control (`src/core/permissions.py`).
 
-### Event Sourcing (Basics)
+5. **DevOps & Testing**:
+   - Async Pytest fixtures (`conftest.py`).
+   - Celery Task Routing for Domain Events.
+   - Pre-start scripts for auto-migration.
 
-State changes emit events (`OrderCreated`).
-The `Order` aggregate records events.
-Infrastructure persists these events (Currently `InMemoryEventStore`, extensible to DB).
+## Usage
 
-## How to Run
-
-### Using Docker (Recommended)
+### 1. Start Services
 
 ```bash
-docker-compose up --build
+docker-compose up -d
 ```
 
-### Local Development
+### 2. Manual Setup (Dev)
 
-1. Install dependencies:
-   ```bash
-   poetry install
-   ```
-2. Run database (e.g. via Docker):
-   ```bash
-   docker-compose up -d db redis
-   ```
-3. Run app:
-   ```bash
-   poetry run uvicorn src.main:app --reload
-   ```
+```bash
+poetry install
+bash scripts/prestart.sh  # Runs migrations
+poetry run uvicorn src.main:app --reload
+```
 
-## Adding a New Module
+### 3. Running Tests
 
-1. Create `src/modules/<module_name>`.
-2. Replicate `domain`, `application`, `infrastructure`, `presentation` structure.
-3. Register router in `src/main.py`.
+```bash
+poetry run pytest
+```
+
+## Structure
+
+- `src/core/bus.py`: Command/Query Bus implementation.
+- `src/core/repository.py`: Base Repository with RLAC.
+- `src/modules/auth`: New Auth module.
+- `src/modules/orders`: Refactored Orders module using Bus.

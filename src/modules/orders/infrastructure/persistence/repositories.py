@@ -7,9 +7,12 @@ from src.modules.orders.domain.aggregates.order import Order
 from src.modules.orders.domain.repositories.order_repository import OrderRepository
 from src.modules.orders.infrastructure.persistence.models import OrderModel
 
-class SqlAlchemyOrderRepository(OrderRepository):
+from src.core.repository import BaseRepository
+
+class SqlAlchemyOrderRepository(BaseRepository[OrderModel], OrderRepository):
     def __init__(self, session: AsyncSession):
-        self.session = session
+        super().__init__(OrderModel, session)
+
 
     async def save(self, order: Order) -> None:
         # Check if exists
@@ -32,19 +35,12 @@ class SqlAlchemyOrderRepository(OrderRepository):
         await self.session.flush()
 
     async def get_by_id(self, order_id: UUID, owner_id: Optional[UUID] = None) -> Optional[Order]:
-        query = select(OrderModel).filter_by(id=order_id)
-        if owner_id:
-            query = query.filter_by(customer_id=owner_id)
-            
-        result = await self.session.execute(query)
-        db_order = result.scalars().first()
-        
-        if not db_order:
+        model = await super().get_by_id(order_id, owner_id=owner_id)
+        if not model:
             return None
-            
         return Order(
-            id=db_order.id,
-            customer_id=db_order.customer_id,
-            total_amount=db_order.total_amount,
-            status=db_order.status
+            id=model.id,
+            customer_id=model.customer_id,
+            total_amount=model.total_amount,
+            status=model.status
         )
